@@ -2,7 +2,7 @@ import React from 'react';
 import { useGetDashboardSummary, useGetMe } from '@workspace/api-client-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser } from '@clerk/react';
+import { useSession } from '@/hooks/use-session';
 import { Wallet, TrendingUp, ArrowDownToLine, ArrowUpFromLine, Activity, History } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -18,10 +18,10 @@ const chartData = [
 ];
 
 export default function Dashboard() {
-  const { isLoaded, user } = useUser();
-  const { data: profile } = useGetMe({ query: { enabled: isLoaded && !!user?.id } });
+  const { isAuthenticated } = useSession();
+  const { data: profile } = useGetMe({ query: { enabled: isAuthenticated } });
   const { data: summary, isLoading } = useGetDashboardSummary({ 
-    query: { enabled: isLoaded && !!user?.id } 
+    query: { enabled: isAuthenticated } 
   });
 
   const formatCurrency = (val: number) => {

@@ -1,7 +1,7 @@
-import { getAuth } from "@clerk/express";
 import type { Request, Response, NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { isAuthenticated } from "../auth/replitAuth";
 
 export interface AuthRequest extends Request {
   dbUserId?: number;
@@ -13,26 +13,27 @@ export const requireAuth = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const auth = getAuth(req);
-  const clerkId = auth?.userId;
-  if (!clerkId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  await isAuthenticated(req, res, async () => {
+    const authId = (req.user as any)?.claims?.sub;
+    if (!authId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId));
-  if (!user) {
-    res.status(401).json({ error: "User not found. Please complete registration." });
-    return;
-  }
-  if (!user.isActive) {
-    res.status(403).json({ error: "Account is suspended." });
-    return;
-  }
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.authId, authId));
+    if (!user) {
+      res.status(401).json({ error: "User not found. Please complete registration." });
+      return;
+    }
+    if (!user.isActive) {
+      res.status(403).json({ error: "Account is suspended." });
+      return;
+    }
 
-  req.dbUserId = user.id;
-  req.dbUserRole = user.role;
-  next();
+    req.dbUserId = user.id;
+    req.dbUserRole = user.role;
+    next();
+  });
 };
 
 export const requireAdmin = async (

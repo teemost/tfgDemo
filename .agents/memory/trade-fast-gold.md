@@ -8,7 +8,7 @@ description: Key decisions, fixes, and setup facts for the TRADE FAST GOLD finte
 ## Architecture
 - **Frontend**: React 19 + Vite 7 + Tailwind 4 + shadcn/ui + Framer Motion + Wouter + TanStack Query — at `artifacts/trade-fast-gold/`, port 22003
 - **Backend**: Express 5 + Drizzle ORM + Zod — at `artifacts/api-server/`, port 8080
-- **Auth**: Clerk (Replit-managed, provisioned)
+- **Auth**: Replit Auth (OIDC via `openid-client`/`passport`), migrated off Clerk on 2026-07-08. `usersTable.clerkId` renamed to `authId`; session store table `sessionsTable` added.
 - **DB**: PostgreSQL via Drizzle ORM
 
 ## Critical Fix: api-client-react Sub-path Exports
@@ -29,8 +29,10 @@ Investment plans seeded manually via pg client (no seed script exists). 4 plans:
 - Gold: 12% ROI / 30d / $25,000–$99,999
 - Platinum: 18% ROI / 30d / $100,000–$999,999
 
-## Clerk Setup
-Provisioned via `setupClerkWhitelabelAuth()`. Keys auto-set: `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`. App.tsx and app.ts were already correctly wired for Clerk proxy pattern.
+## Auth: Clerk → Replit Auth Migration
+Replaced Clerk entirely with the `javascript_log_in_with_replit` blueprint pattern (manual OIDC via `openid-client`+`passport`, not the raw scaffold files). Frontend never talks to the IdP directly — it only calls `POST /api/users/me/ensure` (a `useSession` hook) to check/create the session, and redirects to `/api/login` / `/api/logout` for the actual auth flow.
+**Why:** user explicitly wanted zero third-party auth SDKs; Clerk's proxy middleware pattern doesn't map onto Replit Auth's server-side session/passport model, so it needed a full rewrite of the auth layer, not just a key swap.
+**Gotcha:** the OIDC `callbackURL`/`redirect_uri` is built from `req.hostname`, so testing `/api/login` via direct `curl localhost:PORT` produces a bogus `https://localhost/api/callback` redirect — this is expected (curl bypasses Replit's proxy) and not a bug. Verify with `curl -H "Host: $REPLIT_DEV_DOMAIN"` instead.
 
 ## Artifact Registration
 The `artifacts/trade-fast-gold/` directory exists with full code but has no `artifact.toml` — was not registered via `createArtifact`. The "Start application" workflow has `outputType = "webview"` in `.replit` so preview works without artifact registration.

@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@clerk/react';
+import { useSession } from '@/hooks/use-session';
 import { Plan } from '@workspace/api-client-react/src/generated/api.schemas';
 
 const investSchema = z.object({
@@ -19,7 +19,7 @@ const investSchema = z.object({
 });
 
 export default function Plans() {
-  const { isLoaded, user } = useUser();
+  const { isAuthenticated } = useSession();
   const { data: plans, isLoading } = useListPlans();
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const { toast } = useToast();

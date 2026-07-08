@@ -972,11 +972,11 @@ components:
     # ─── USER ───────────────────────────────────────────────────────────────
     UserProfile:
       type: object
-      required: [id, clerkId, email, firstName, lastName, role, kycStatus, referralCode, createdAt]
+      required: [id, authId, email, firstName, lastName, role, kycStatus, referralCode, createdAt]
       properties:
         id:
           type: integer
-        clerkId:
+        authId:
           type: string
         email:
           type: string

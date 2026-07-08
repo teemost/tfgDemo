@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser } from '@clerk/react';
+import { useSession } from '@/hooks/use-session';
 import { Save, User, ShieldCheck } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getGetMeQueryKey } from '@workspace/api-client-react/src/generated/api';
@@ -23,8 +23,8 @@ const profileSchema = z.object({
 });
 
 export default function Profile() {
-  const { user } = useUser();
-  const { data: profile, isLoading } = useGetMe({ query: { enabled: !!user?.id } });
+  const { isAuthenticated } = useSession();
+  const { data: profile, isLoading } = useGetMe({ query: { enabled: isAuthenticated } });
   const updateMe = useUpdateMe();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -84,7 +84,7 @@ export default function Profile() {
         <CardHeader className="border-b border-white/5 pb-6">
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20 border-2 border-primary/30">
-              <AvatarImage src={profile.avatarUrl || user?.imageUrl} />
+              <AvatarImage src={profile.avatarUrl ?? undefined} />
               <AvatarFallback className="bg-primary/10 text-primary text-xl"><User size={32}/></AvatarFallback>
             </Avatar>
             <div>

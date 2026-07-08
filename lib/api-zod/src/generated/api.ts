@@ -21,7 +21,7 @@ export const HealthCheckResponse = zod.object({
  */
 export const GetMeResponse = zod.object({
   "id": zod.number(),
-  "clerkId": zod.string(),
+  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -49,7 +49,7 @@ export const UpdateMeBody = zod.object({
 
 export const UpdateMeResponse = zod.object({
   "id": zod.number(),
-  "clerkId": zod.string(),
+  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -69,7 +69,7 @@ export const UpdateMeResponse = zod.object({
  */
 export const EnsureUserResponse = zod.object({
   "id": zod.number(),
-  "clerkId": zod.string(),
+  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -741,7 +741,7 @@ export const ListAdminUsersQueryParams = zod.object({
 export const ListAdminUsersResponse = zod.object({
   "data": zod.array(zod.object({
   "id": zod.number(),
-  "clerkId": zod.string(),
+  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -770,7 +770,7 @@ export const GetAdminUserParams = zod.object({
 export const GetAdminUserResponse = zod.object({
   "user": zod.object({
   "id": zod.number(),
-  "clerkId": zod.string(),
+  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -814,7 +814,7 @@ export const UpdateAdminUserBody = zod.object({
 export const UpdateAdminUserResponse = zod.object({
   "user": zod.object({
   "id": zod.number(),
-  "clerkId": zod.string(),
+  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),

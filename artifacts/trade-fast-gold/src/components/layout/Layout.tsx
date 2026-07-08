@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { useUser, useClerk } from '@clerk/react';
+import { useSession, logout } from '@/hooks/use-session';
 import { useGetMe } from '@workspace/api-client-react';
 import { 
   SidebarProvider, 
@@ -41,17 +41,15 @@ import { Button } from '@/components/ui/button';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { user, isLoaded: isClerkLoaded } = useUser();
-  const { signOut } = useClerk();
-  
+  const { isAuthenticated } = useSession();
+
   const { data: profile } = useGetMe({
     query: {
-      enabled: isClerkLoaded && !!user?.id
+      enabled: isAuthenticated
     }
   });
 
   const isAdmin = profile?.role === 'admin';
-  const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   const mainNav = [
     { title: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -156,7 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarFooter className="border-t border-border/50 p-4">
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-9 w-9 border border-primary/20">
-              <AvatarImage src={profile?.avatarUrl || user?.imageUrl} />
+              <AvatarImage src={profile?.avatarUrl ?? undefined} />
               <AvatarFallback className="bg-primary/10 text-primary">{profile?.firstName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
@@ -167,7 +165,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Button 
             variant="ghost" 
             className="w-full justify-start text-gray-400 hover:text-white hover:bg-white/5"
-            onClick={() => signOut({ redirectUrl: basePath || '/' })}
+            onClick={() => logout()}
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sign Out

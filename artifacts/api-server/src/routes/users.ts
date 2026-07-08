@@ -1,52 +1,59 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable, walletsTable } from "@workspace/db";
-import { getAuth, clerkClient } from "@clerk/express";
+import { isAuthenticated } from "../auth/replitAuth";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
 import { UpdateMeBody } from "@workspace/api-zod";
 
 const router = Router();
 
-// Ensure user record exists after Clerk sign-in
-router.post("/users/me/ensure", async (req, res): Promise<void> => {
-  const auth = getAuth(req);
-  const clerkId = auth?.userId;
-  if (!clerkId) {
+function serializeUser(user: typeof usersTable.$inferSelect) {
+  return {
+    id: user.id,
+    authId: user.authId,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone ?? null,
+    country: user.country ?? null,
+    role: user.role,
+    kycStatus: user.kycStatus,
+    referralCode: user.referralCode,
+    avatarUrl: user.avatarUrl ?? null,
+    isActive: user.isActive,
+    createdAt: user.createdAt.toISOString(),
+  };
+}
+
+// Ensure user record exists after Replit Auth sign-in
+router.post("/users/me/ensure", isAuthenticated, async (req, res): Promise<void> => {
+  const claims = (req.user as any)?.claims;
+  const authId = claims?.sub as string | undefined;
+  if (!authId) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
-  // Fetch full user from Clerk to get accurate email/name
-  let clerkUser: { emailAddresses: { emailAddress: string }[]; firstName: string | null; lastName: string | null; imageUrl: string } | null = null;
-  try {
-    clerkUser = await clerkClient.users.getUser(clerkId);
-  } catch {
-    // Fall back to session claims if Clerk API is unavailable
-  }
+  const email = (claims?.email as string) ?? "";
+  const firstName = (claims?.first_name as string) ?? "";
+  const lastName = (claims?.last_name as string) ?? "";
+  const avatarUrl = (claims?.profile_image_url as string) ?? null;
 
-  const email = clerkUser?.emailAddresses?.[0]?.emailAddress
-    ?? (auth.sessionClaims?.email as string)
-    ?? "";
-  const firstName = clerkUser?.firstName
-    ?? (auth.sessionClaims?.given_name as string)
-    ?? "";
-  const lastName = clerkUser?.lastName
-    ?? (auth.sessionClaims?.family_name as string)
-    ?? "";
-  const avatarUrl = clerkUser?.imageUrl ?? null;
-
-  let [user] = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId));
+  let [user] = await db.select().from(usersTable).where(eq(usersTable.authId, authId));
 
   if (!user) {
     const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-    [user] = await db.insert(usersTable).values({
-      clerkId,
-      email,
-      firstName,
-      lastName,
-      avatarUrl,
-      referralCode,
-    }).returning();
+    [user] = await db
+      .insert(usersTable)
+      .values({
+        authId,
+        email: email || `${authId}@users.noreply.replit.app`,
+        firstName,
+        lastName,
+        avatarUrl,
+        referralCode,
+      })
+      .returning();
 
     // Create 4 wallets for new user
     await db.insert(walletsTable).values([
@@ -56,33 +63,20 @@ router.post("/users/me/ensure", async (req, res): Promise<void> => {
       { userId: user.id, type: "referral", balance: "0", currency: "USD" },
     ]);
   } else if (!user.email && email) {
-    // Sync missing profile data from Clerk for existing users
-    [user] = await db.update(usersTable)
+    // Sync missing profile data from Replit Auth for existing users
+    [user] = await db
+      .update(usersTable)
       .set({
         email: email || user.email,
         firstName: firstName || user.firstName,
         lastName: lastName || user.lastName,
         avatarUrl: avatarUrl || user.avatarUrl,
       })
-      .where(eq(usersTable.clerkId, clerkId))
+      .where(eq(usersTable.authId, authId))
       .returning();
   }
 
-  res.json({
-    id: user.id,
-    clerkId: user.clerkId,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    phone: user.phone ?? null,
-    country: user.country ?? null,
-    role: user.role,
-    kycStatus: user.kycStatus,
-    referralCode: user.referralCode,
-    avatarUrl: user.avatarUrl ?? null,
-    isActive: user.isActive,
-    createdAt: user.createdAt.toISOString(),
-  });
+  res.json(serializeUser(user));
 });
 
 router.get("/users/me", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -91,21 +85,7 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res): Promise<void
     res.status(404).json({ error: "User not found" });
     return;
   }
-  res.json({
-    id: user.id,
-    clerkId: user.clerkId,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    phone: user.phone ?? null,
-    country: user.country ?? null,
-    role: user.role,
-    kycStatus: user.kycStatus,
-    referralCode: user.referralCode,
-    avatarUrl: user.avatarUrl ?? null,
-    isActive: user.isActive,
-    createdAt: user.createdAt.toISOString(),
-  });
+  res.json(serializeUser(user));
 });
 
 router.patch("/users/me", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -123,21 +103,7 @@ router.patch("/users/me", requireAuth, async (req: AuthRequest, res): Promise<vo
   if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
 
   const [user] = await db.update(usersTable).set(updates).where(eq(usersTable.id, req.dbUserId!)).returning();
-  res.json({
-    id: user.id,
-    clerkId: user.clerkId,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    phone: user.phone ?? null,
-    country: user.country ?? null,
-    role: user.role,
-    kycStatus: user.kycStatus,
-    referralCode: user.referralCode,
-    avatarUrl: user.avatarUrl ?? null,
-    isActive: user.isActive,
-    createdAt: user.createdAt.toISOString(),
-  });
+  res.json(serializeUser(user));
 });
 
 export default router;

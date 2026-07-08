@@ -29,7 +29,7 @@ export const UserProfileKycStatus = {
 
 export interface UserProfile {
   id: number;
-  clerkId: string;
+  authId: string;
   email: string;
   firstName: string;
   lastName: string;
