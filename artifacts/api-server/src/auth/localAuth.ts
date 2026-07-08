@@ -19,6 +19,11 @@ const scrypt = promisify(_scrypt);
 
 const SCRYPT_KEYLEN = 64;
 
+function sanitizeUser(user: typeof usersTable.$inferSelect) {
+  const { passwordHash, ...safeUser } = user;
+  return safeUser;
+}
+
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("hex");
   const derivedKey = (await scrypt(password, salt, SCRYPT_KEYLEN)) as Buffer;
@@ -144,7 +149,7 @@ export async function setupAuth(app: Express) {
 
     req.login(user, (err) => {
       if (err) return next(err);
-      res.status(201).json(user);
+      res.status(201).json(sanitizeUser(user));
     });
   });
 
@@ -157,7 +162,7 @@ export async function setupAuth(app: Express) {
       }
       req.login(user, (loginErr) => {
         if (loginErr) return next(loginErr);
-        res.json(user);
+        res.json(sanitizeUser(user));
       });
     })(req, res, next);
   });
