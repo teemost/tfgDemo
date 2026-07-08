@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import { setupAuth } from "./auth/replitAuth";
+import { setupAuth } from "./auth/localAuth";
 import { logger } from "./lib/logger";
 import router from "./routes";
 

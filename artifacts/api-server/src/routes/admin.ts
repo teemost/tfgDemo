@@ -7,7 +7,7 @@ import { GetAdminUserParams, UpdateAdminUserBody, UpdateAdminUserParams, ListAdm
 const router = Router();
 
 function fmtUser(u: typeof usersTable.$inferSelect) {
-  return { id: u.id, authId: u.authId, email: u.email, firstName: u.firstName, lastName: u.lastName, phone: u.phone ?? null, country: u.country ?? null, role: u.role, kycStatus: u.kycStatus, referralCode: u.referralCode, avatarUrl: u.avatarUrl ?? null, isActive: u.isActive, createdAt: u.createdAt.toISOString() };
+  return { id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, phone: u.phone ?? null, country: u.country ?? null, role: u.role, kycStatus: u.kycStatus, referralCode: u.referralCode, avatarUrl: u.avatarUrl ?? null, isActive: u.isActive, createdAt: u.createdAt.toISOString() };
 }
 
 router.get("/admin/stats", requireAdmin, async (req: AuthRequest, res): Promise<void> => {

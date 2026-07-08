@@ -21,7 +21,6 @@ export const HealthCheckResponse = zod.object({
  */
 export const GetMeResponse = zod.object({
   "id": zod.number(),
-  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -49,7 +48,6 @@ export const UpdateMeBody = zod.object({
 
 export const UpdateMeResponse = zod.object({
   "id": zod.number(),
-  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -65,11 +63,22 @@ export const UpdateMeResponse = zod.object({
 
 
 /**
- * @summary Ensure user record exists (called after auth)
+ * @summary Create a new account with email and password
  */
-export const EnsureUserResponse = zod.object({
+export const registerBodyPasswordMin = 8;
+
+
+
+export const RegisterBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string().min(registerBodyPasswordMin),
+  "confirmPassword": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string()
+})
+
+export const RegisterResponse = zod.object({
   "id": zod.number(),
-  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -82,6 +91,36 @@ export const EnsureUserResponse = zod.object({
   "isActive": zod.boolean().optional(),
   "createdAt": zod.string()
 })
+
+
+/**
+ * @summary Log in with email and password
+ */
+export const LoginBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "phone": zod.string().nullish(),
+  "country": zod.string().nullish(),
+  "role": zod.enum(['user', 'admin']),
+  "kycStatus": zod.enum(['not_submitted', 'pending', 'approved', 'rejected']),
+  "referralCode": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "isActive": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Log out and destroy the session
+ */
+export const LogoutResponse = zod.void()
 
 
 /**
@@ -741,7 +780,6 @@ export const ListAdminUsersQueryParams = zod.object({
 export const ListAdminUsersResponse = zod.object({
   "data": zod.array(zod.object({
   "id": zod.number(),
-  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -770,7 +808,6 @@ export const GetAdminUserParams = zod.object({
 export const GetAdminUserResponse = zod.object({
   "user": zod.object({
   "id": zod.number(),
-  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -814,7 +851,6 @@ export const UpdateAdminUserBody = zod.object({
 export const UpdateAdminUserResponse = zod.object({
   "user": zod.object({
   "id": zod.number(),
-  "authId": zod.string(),
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),

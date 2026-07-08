@@ -29,7 +29,6 @@ export const UserProfileKycStatus = {
 
 export interface UserProfile {
   id: number;
-  authId: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -52,6 +51,20 @@ export interface UserProfileUpdate {
   phone?: string;
   country?: string;
   avatarUrl?: string;
+}
+
+export interface RegisterInput {
+  email: string;
+  /** @minLength 8 */
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
 }
 
 export type TransactionType = typeof TransactionType[keyof typeof TransactionType];

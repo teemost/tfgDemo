@@ -47,6 +47,7 @@ import type {
   ListNotificationsParams,
   ListTransactionsParams,
   ListWithdrawalsParams,
+  LoginInput,
   MarketTicker,
   Notification,
   Plan,
@@ -54,6 +55,7 @@ import type {
   PlanUpdate,
   ReferralEntry,
   ReferralStats,
+  RegisterInput,
   RejectInput,
   SupportTicket,
   SupportTicketDetail,
@@ -321,20 +323,160 @@ export const useUpdateMe = <TError = ErrorType<unknown>,
       return useMutation(getUpdateMeMutationOptions(options));
     }
 
-export const getEnsureUserUrl = () => {
+export const getRegisterUrl = () => {
 
 
 
 
-  return `/api/users/me/ensure`
+  return `/api/auth/register`
 }
 
 /**
- * @summary Ensure user record exists (called after auth)
+ * @summary Create a new account with email and password
  */
-export const ensureUser = async ( options?: RequestInit): Promise<UserProfile> => {
+export const register = async (registerInput: RegisterInput, options?: RequestInit): Promise<UserProfile> => {
 
-  return customFetch<UserProfile>(getEnsureUserUrl(),
+  return customFetch<UserProfile>(getRegisterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(registerInput)
+  }
+);}
+
+
+
+
+export const getRegisterMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: BodyType<RegisterInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: BodyType<RegisterInput>}, TContext> => {
+
+const mutationKey = ['register'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof register>>, {data: BodyType<RegisterInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  register(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>
+    export type RegisterMutationBody = BodyType<RegisterInput>
+    export type RegisterMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new account with email and password
+ */
+export const useRegister = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: BodyType<RegisterInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof register>>,
+        TError,
+        {data: BodyType<RegisterInput>},
+        TContext
+      > => {
+      return useMutation(getRegisterMutationOptions(options));
+    }
+
+export const getLoginUrl = () => {
+
+
+
+
+  return `/api/auth/login`
+}
+
+/**
+ * @summary Log in with email and password
+ */
+export const login = async (loginInput: LoginInput, options?: RequestInit): Promise<UserProfile> => {
+
+  return customFetch<UserProfile>(getLoginUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(loginInput)
+  }
+);}
+
+
+
+
+export const getLoginMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext> => {
+
+const mutationKey = ['login'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, {data: BodyType<LoginInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  login(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>
+    export type LoginMutationBody = BodyType<LoginInput>
+    export type LoginMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Log in with email and password
+ */
+export const useLogin = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof login>>,
+        TError,
+        {data: BodyType<LoginInput>},
+        TContext
+      > => {
+      return useMutation(getLoginMutationOptions(options));
+    }
+
+export const getLogoutUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+/**
+ * @summary Log out and destroy the session
+ */
+export const logout = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getLogoutUrl(),
   {
     ...options,
     method: 'POST'
@@ -346,11 +488,11 @@ export const ensureUser = async ( options?: RequestInit): Promise<UserProfile> =
 
 
 
-export const getEnsureUserMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ensureUser>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof ensureUser>>, TError,void, TContext> => {
+export const getLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
 
-const mutationKey = ['ensureUser'];
+const mutationKey = ['logout'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -360,10 +502,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ensureUser>>, void> = () => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
 
 
-          return  ensureUser(requestOptions)
+          return  logout(requestOptions)
         }
 
 
@@ -373,22 +515,22 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type EnsureUserMutationResult = NonNullable<Awaited<ReturnType<typeof ensureUser>>>
+    export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
 
-    export type EnsureUserMutationError = ErrorType<unknown>
+    export type LogoutMutationError = ErrorType<unknown>
 
     /**
- * @summary Ensure user record exists (called after auth)
+ * @summary Log out and destroy the session
  */
-export const useEnsureUser = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ensureUser>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
-        Awaited<ReturnType<typeof ensureUser>>,
+        Awaited<ReturnType<typeof logout>>,
         TError,
         void,
         TContext
       > => {
-      return useMutation(getEnsureUserMutationOptions(options));
+      return useMutation(getLogoutMutationOptions(options));
     }
 
 export const getGetDashboardSummaryUrl = () => {

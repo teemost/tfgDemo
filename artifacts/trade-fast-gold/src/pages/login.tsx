@@ -1,14 +1,40 @@
 import React from 'react';
 import { Link, Redirect } from 'wouter';
-import { useSession, login } from '@/hooks/use-session';
+import { useSession, useLogin } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
-import { LogIn } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { LogIn, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
 
 export default function Login() {
   const { isAuthenticated, isLoading } = useSession();
+  const loginMutation = useLogin();
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
   if (isLoading) return null;
   if (isAuthenticated) return <Redirect to="/dashboard" />;
+
+  const onSubmit = (values: z.infer<typeof loginSchema>) => {
+    loginMutation.mutate(values, {
+      onError: (err: any) => {
+        toast({ variant: 'destructive', title: 'Sign in failed', description: err.message });
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 relative">
@@ -24,22 +50,56 @@ export default function Login() {
       </Link>
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="glass-card rounded-2xl border border-white/10 p-8 text-center">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <LogIn className="w-7 h-7 text-primary" />
+        <div className="glass-card rounded-2xl border border-white/10 p-8">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <LogIn className="w-7 h-7 text-primary" />
+            </div>
+            <h1 className="text-3xl font-playfair font-bold text-white">Welcome Back</h1>
+            <p className="text-gray-400 mt-2 text-sm">Sign in to access your investment portal</p>
           </div>
-          <h1 className="text-3xl font-playfair font-bold text-white">Welcome Back</h1>
-          <p className="text-gray-400 mt-2 text-sm mb-8">Sign in to access your investment portal</p>
 
-          <Button
-            size="lg"
-            className="w-full h-14 bg-gold-gradient text-black font-semibold text-lg hover:opacity-90"
-            onClick={login}
-          >
-            Sign In
-          </Button>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="you@example.com" className="bg-[#0A0A0A] border-white/10 text-white" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" className="bg-[#0A0A0A] border-white/10 text-white" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <p className="text-sm text-gray-500 mt-6">
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full h-14 bg-gold-gradient text-black font-semibold text-lg hover:opacity-90"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+              </Button>
+            </form>
+          </Form>
+
+          <p className="text-sm text-gray-500 mt-6 text-center">
             Don't have an account?{' '}
             <Link href="/register" className="text-primary hover:underline font-medium">
               Create one
