@@ -1,0 +1,1 @@
+- [Trade Fast Gold project](trade-fast-gold.md) — key decisions and fixes for the TRADE FAST GOLD fintech app

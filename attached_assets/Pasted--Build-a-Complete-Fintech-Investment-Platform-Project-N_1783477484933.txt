@@ -1,0 +1,514 @@
+# Build a Complete Fintech Investment Platform
+
+## Project Name
+TRADE FAST GOLD
+
+## Overview
+Build a modern, secure, scalable fintech investment platform named TRADE FAST GOLD. The application should have a premium gold, black, and white color theme, smooth animations, responsive UI, and enterprise-level architecture.
+
+The platform should allow users to register, verify their identity, deposit funds, invest in different plans, monitor earnings, withdraw profits, and manage their accounts.
+
+The application should be built with clean, modular code that is easy to maintain and expand.
+
+---
+
+# Technology Stack
+
+Frontend:
+- React
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+
+Backend:
+- Node.js
+- Express.js
+
+Database:
+- PostgreSQL
+
+Authentication:
+- JWT
+- Refresh Tokens
+- Two-Factor Authentication (2FA)
+
+Storage:
+- Cloud object storage for uploaded documents
+
+Payments:
+- Stripe
+- Flutterwave
+- Paystack
+- Cryptocurrency wallet support (BTC, ETH, USDT)
+
+Notifications:
+- Email
+- SMS
+- Push Notifications
+
+Charts:
+- TradingView
+- Chart.js
+
+Deployment:
+- Docker
+- CI/CD ready
+- Environment variable configuration
+
+---
+
+# User Features
+
+### Authentication
+
+- Registration
+- Login
+- Forgot Password
+- Email Verification
+- Phone Verification
+- Two-Factor Authentication
+- Device Login History
+
+---
+
+### User Dashboard
+
+Display:
+
+- Portfolio Value
+- Available Balance
+- Active Investments
+- Pending Withdrawals
+- Total Profit
+- Daily Earnings
+- Investment Performance Graph
+- Recent Transactions
+
+---
+
+### Investment Plans
+
+Create multiple plans such as:
+
+Starter
+
+- Minimum Investment
+- ROI Percentage
+- Duration
+
+Silver
+
+Gold
+
+Premium
+
+VIP
+
+Admin should be able to create unlimited plans.
+
+---
+
+### Deposit Methods
+
+Support:
+
+- Bank Transfer
+- Card Payments
+- Bitcoin
+- Ethereum
+- USDT TRC20
+- USDT ERC20
+
+Users should receive deposit confirmations.
+
+---
+
+### Withdrawals
+
+Allow withdrawals through:
+
+- Bank Account
+- Crypto Wallet
+
+Admin approval required.
+
+Withdrawal history should include:
+
+- Pending
+- Approved
+- Declined
+
+---
+
+### Referral System
+
+Multi-level referral program.
+
+Features:
+
+- Referral Link
+- Referral Code
+- Referral Earnings
+- Referral Leaderboard
+
+---
+
+### KYC Verification
+
+Users upload:
+
+- Passport
+- Driver's License
+- National ID
+- Selfie Verification
+- Proof of Address
+
+Admin can:
+
+- Approve
+- Reject
+- Request resubmission
+
+---
+
+### Wallet System
+
+Each user has:
+
+- Main Wallet
+- Profit Wallet
+- Bonus Wallet
+- Referral Wallet
+
+Internal transfers supported.
+
+---
+
+### Transaction History
+
+Complete filtering by:
+
+- Date
+- Amount
+- Status
+- Investment
+- Withdrawal
+- Deposit
+
+Export to PDF and CSV.
+
+---
+
+### Investment Calculator
+
+Allow users to estimate profits before investing.
+
+---
+
+### Live Market Section
+
+Display:
+
+- Gold Price
+- Bitcoin Price
+- Ethereum Price
+- Major Forex Pairs
+- Market News
+
+Use live APIs.
+
+---
+
+### Customer Support
+
+Include:
+
+- Live Chat
+- Ticket System
+- FAQ
+- Contact Form
+
+---
+
+### Notifications
+
+Real-time notifications for:
+
+- Deposits
+- Withdrawals
+- Earnings
+- Referral Bonuses
+- Security Alerts
+
+---
+
+# Admin Panel
+
+Secure admin dashboard.
+
+Features:
+
+Dashboard Analytics
+
+User Management
+
+Investment Plan Management
+
+Deposit Management
+
+Withdrawal Approval
+
+KYC Approval
+
+Referral Management
+
+Transaction Monitoring
+
+Audit Logs
+
+Announcements
+
+Email Broadcast
+
+Push Notifications
+
+Support Ticket Management
+
+Content Management
+
+Banner Management
+
+Site Settings
+
+Payment Gateway Configuration
+
+Security Settings
+
+Role-Based Access Control
+
+---
+
+# Security
+
+Implement:
+
+- HTTPS
+- CSRF Protection
+- XSS Protection
+- SQL Injection Prevention
+- Rate Limiting
+- Encrypted Passwords
+- Secure Cookies
+- Session Management
+- Account Lockout
+- Device Recognition
+- Audit Logging
+
+---
+
+# UI Design
+
+Theme:
+
+Luxury Gold + Black + White
+
+Modern fintech appearance.
+
+Include:
+
+Dark Mode
+
+Light Mode
+
+Animated Dashboard
+
+Smooth Page Transitions
+
+Professional Icons
+
+Glassmorphism
+
+Responsive Mobile Design
+
+Responsive Tablet Design
+
+Responsive Desktop Design
+
+---
+
+# Landing Page
+
+Sections:
+
+Hero
+
+About TRADE FAST GOLD
+
+How It Works
+
+Investment Plans
+
+Benefits
+
+Security
+
+Testimonials
+
+Live Statistics
+
+FAQ
+
+Partners
+
+Contact
+
+Newsletter
+
+Footer
+
+---
+
+# Additional Features
+
+Achievement badges
+
+Referral rewards
+
+Investment certificates
+
+PDF statement generation
+
+Profit simulator
+
+Daily ROI automation
+
+Admin analytics
+
+Multi-language support
+
+Multi-currency support
+
+Accessibility features
+
+SEO optimization
+
+PWA support
+
+Offline capability where appropriate
+
+---
+
+# Database
+
+Design a normalized PostgreSQL database with proper relationships for:
+
+Users
+
+Wallets
+
+Transactions
+
+Deposits
+
+Withdrawals
+
+Investments
+
+Investment Plans
+
+Referrals
+
+KYC Records
+
+Notifications
+
+Support Tickets
+
+Audit Logs
+
+Admin Accounts
+
+Roles
+
+Permissions
+
+Settings
+
+---
+
+# API
+
+Build a fully documented REST API.
+
+Include:
+
+Validation
+
+Pagination
+
+Filtering
+
+Sorting
+
+Authentication middleware
+
+Error handling
+
+Logging
+
+Swagger/OpenAPI documentation
+
+---
+
+# Testing
+
+Include:
+
+Unit Tests
+
+Integration Tests
+
+API Tests
+
+Security Tests
+
+---
+
+# Code Quality
+
+Use clean architecture.
+
+Follow SOLID principles.
+
+Use reusable components.
+
+Use environment variables for secrets.
+
+Add comprehensive comments only where necessary.
+
+Implement proper logging and centralized error handling.
+
+---
+
+# Deliverables
+
+Generate a complete production-ready application with:
+
+- Frontend
+- Backend
+- Database schema
+- API
+- Admin dashboard
+- User dashboard
+- Authentication
+- Payment integration hooks
+- KYC workflow
+- Responsive UI
+- Sample seed data
+- Docker configuration
+- README with installation instructions
+- Deployment guide
+- API documentation
+
+The application should be fully branded as TRADE FAST GOLD, with the company name, logo placeholder, favicon placeholder, and consistent branding throughout the platform.
