@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable, walletsTable } from "@workspace/db";
-import { getAuth } from "@clerk/express";
+import { getAuth, clerkClient } from "@clerk/express";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
 import { UpdateMeBody } from "@workspace/api-zod";
 
@@ -16,9 +16,24 @@ router.post("/users/me/ensure", async (req, res): Promise<void> => {
     return;
   }
 
-  const email = (auth.sessionClaims?.email as string) ?? "";
-  const firstName = (auth.sessionClaims?.given_name as string) ?? "";
-  const lastName = (auth.sessionClaims?.family_name as string) ?? "";
+  // Fetch full user from Clerk to get accurate email/name
+  let clerkUser: { emailAddresses: { emailAddress: string }[]; firstName: string | null; lastName: string | null; imageUrl: string } | null = null;
+  try {
+    clerkUser = await clerkClient.users.getUser(clerkId);
+  } catch {
+    // Fall back to session claims if Clerk API is unavailable
+  }
+
+  const email = clerkUser?.emailAddresses?.[0]?.emailAddress
+    ?? (auth.sessionClaims?.email as string)
+    ?? "";
+  const firstName = clerkUser?.firstName
+    ?? (auth.sessionClaims?.given_name as string)
+    ?? "";
+  const lastName = clerkUser?.lastName
+    ?? (auth.sessionClaims?.family_name as string)
+    ?? "";
+  const avatarUrl = clerkUser?.imageUrl ?? null;
 
   let [user] = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId));
 
@@ -29,6 +44,7 @@ router.post("/users/me/ensure", async (req, res): Promise<void> => {
       email,
       firstName,
       lastName,
+      avatarUrl,
       referralCode,
     }).returning();
 
@@ -39,6 +55,17 @@ router.post("/users/me/ensure", async (req, res): Promise<void> => {
       { userId: user.id, type: "bonus", balance: "0", currency: "USD" },
       { userId: user.id, type: "referral", balance: "0", currency: "USD" },
     ]);
+  } else if (!user.email && email) {
+    // Sync missing profile data from Clerk for existing users
+    [user] = await db.update(usersTable)
+      .set({
+        email: email || user.email,
+        firstName: firstName || user.firstName,
+        lastName: lastName || user.lastName,
+        avatarUrl: avatarUrl || user.avatarUrl,
+      })
+      .where(eq(usersTable.clerkId, clerkId))
+      .returning();
   }
 
   res.json({
