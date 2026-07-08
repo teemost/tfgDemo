@@ -212,6 +212,40 @@ export interface Wallet {
   createdAt: string;
 }
 
+export type AdminWalletAdjustInputWalletType = typeof AdminWalletAdjustInputWalletType[keyof typeof AdminWalletAdjustInputWalletType];
+
+
+export const AdminWalletAdjustInputWalletType = {
+  main: 'main',
+  profit: 'profit',
+  bonus: 'bonus',
+  referral: 'referral',
+} as const;
+
+export type AdminWalletAdjustInputDirection = typeof AdminWalletAdjustInputDirection[keyof typeof AdminWalletAdjustInputDirection];
+
+
+export const AdminWalletAdjustInputDirection = {
+  deposit: 'deposit',
+  withdraw: 'withdraw',
+} as const;
+
+export interface AdminWalletAdjustInput {
+  walletType: AdminWalletAdjustInputWalletType;
+  direction: AdminWalletAdjustInputDirection;
+  /** @exclusiveMinimum 0 */
+  amount: number;
+  note?: string;
+}
+
+export interface AdminWalletAdjustResult {
+  success: boolean;
+  wallet: Wallet;
+  adjusted: number;
+  previousBalance: number;
+  newBalance: number;
+}
+
 export type WalletTransferInputFromWalletType = typeof WalletTransferInputFromWalletType[keyof typeof WalletTransferInputFromWalletType];
 
 

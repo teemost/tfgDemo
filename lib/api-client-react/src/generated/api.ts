@@ -27,6 +27,8 @@ import type {
   AdminUserDetail,
   AdminUserPage,
   AdminUserUpdate,
+  AdminWalletAdjustInput,
+  AdminWalletAdjustResult,
   AdminWithdrawalPage,
   CountResult,
   DashboardSummary,
@@ -3103,6 +3105,77 @@ export const useUpdateAdminUser = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateAdminUserMutationOptions(options));
+    }
+
+export const getAdjustUserWalletUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/users/${id}/credit`
+}
+
+/**
+ * @summary Manually deposit into or withdraw from a user's wallet (admin)
+ */
+export const adjustUserWallet = async (id: number,
+    adminWalletAdjustInput: AdminWalletAdjustInput, options?: RequestInit): Promise<AdminWalletAdjustResult> => {
+
+  return customFetch<AdminWalletAdjustResult>(getAdjustUserWalletUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminWalletAdjustInput)
+  }
+);}
+
+
+
+
+export const getAdjustUserWalletMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adjustUserWallet>>, TError,{id: number;data: BodyType<AdminWalletAdjustInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adjustUserWallet>>, TError,{id: number;data: BodyType<AdminWalletAdjustInput>}, TContext> => {
+
+const mutationKey = ['adjustUserWallet'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adjustUserWallet>>, {id: number;data: BodyType<AdminWalletAdjustInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  adjustUserWallet(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdjustUserWalletMutationResult = NonNullable<Awaited<ReturnType<typeof adjustUserWallet>>>
+    export type AdjustUserWalletMutationBody = BodyType<AdminWalletAdjustInput>
+    export type AdjustUserWalletMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually deposit into or withdraw from a user's wallet (admin)
+ */
+export const useAdjustUserWallet = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adjustUserWallet>>, TError,{id: number;data: BodyType<AdminWalletAdjustInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adjustUserWallet>>,
+        TError,
+        {id: number;data: BodyType<AdminWalletAdjustInput>},
+        TContext
+      > => {
+      return useMutation(getAdjustUserWalletMutationOptions(options));
     }
 
 export const getListAdminDepositsUrl = (params?: ListAdminDepositsParams,) => {

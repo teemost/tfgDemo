@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { eq, count, sum } from "drizzle-orm";
+import { eq, and, count, sum } from "drizzle-orm";
 import { db, usersTable, depositsTable, withdrawalsTable, investmentsTable, kycTable, supportTicketsTable, walletsTable, transactionsTable } from "@workspace/db";
 import { requireAdmin, type AuthRequest } from "../middlewares/requireAuth";
-import { GetAdminUserParams, UpdateAdminUserBody, UpdateAdminUserParams, ListAdminUsersQueryParams } from "@workspace/api-zod";
+import { GetAdminUserParams, UpdateAdminUserBody, UpdateAdminUserParams, ListAdminUsersQueryParams, AdjustUserWalletParams, AdjustUserWalletBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -76,52 +76,66 @@ router.patch("/admin/users/:id", requireAdmin, async (req: AuthRequest, res): Pr
 });
 
 router.post("/admin/users/:id/credit", requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  const userId = Number(req.params.id);
-  if (isNaN(userId)) { res.status(400).json({ error: "Invalid user id" }); return; }
+  const params = AdjustUserWalletParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const parsed = AdjustUserWalletBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const { walletType, amount, note } = req.body as { walletType: string; amount: number; note?: string };
-  if (!walletType || !["main", "profit", "bonus", "referral"].includes(walletType)) {
-    res.status(400).json({ error: "Invalid wallet type. Must be: main, profit, bonus, or referral" }); return;
+  const { id: userId } = params.data;
+  const { walletType, direction, note } = parsed.data;
+  // Normalize to 2-decimal currency precision up front so the validated
+  // amount, stored balance, and transaction ledger entry always agree.
+  const amount = Math.round(parsed.data.amount * 100) / 100;
+  if (amount <= 0) { res.status(400).json({ error: "Amount must be greater than zero" }); return; }
+  const signedAmount = direction === "withdraw" ? -amount : amount;
+
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [targetUser] = await tx.select().from(usersTable).where(eq(usersTable.id, userId));
+      if (!targetUser) return { error: { status: 404, message: "User not found" } } as const;
+
+      // Lock the wallet row for the duration of the transaction so concurrent
+      // adjustments to the same wallet cannot race past the balance check.
+      const [targetWallet] = await tx.select().from(walletsTable)
+        .where(and(eq(walletsTable.userId, userId), eq(walletsTable.type, walletType)))
+        .for("update");
+      if (!targetWallet) return { error: { status: 404, message: "Wallet not found for this user" } } as const;
+
+      const currentBalance = Number(targetWallet.balance);
+      const newBalance = Math.round((currentBalance + signedAmount) * 100) / 100;
+      if (newBalance < 0) {
+        return { error: { status: 400, message: `Insufficient balance. Current: ${currentBalance.toFixed(2)}` } } as const;
+      }
+
+      const [updated] = await tx.update(walletsTable)
+        .set({ balance: newBalance.toFixed(2) })
+        .where(eq(walletsTable.id, targetWallet.id))
+        .returning();
+
+      await tx.insert(transactionsTable).values({
+        userId,
+        type: direction === "deposit" ? "deposit" : "withdrawal",
+        amount: amount.toFixed(2),
+        status: "completed",
+        description: `[Admin adjustment #${Date.now()}] ${note || `Admin ${direction} to ${walletType} wallet`}`,
+      });
+
+      return { ok: { updated, currentBalance } } as const;
+    });
+
+    if ("error" in result) { res.status(result.error.status).json({ error: result.error.message }); return; }
+
+    const { updated, currentBalance } = result.ok;
+    res.json({
+      success: true,
+      wallet: { id: updated.id, userId: updated.userId, type: updated.type, balance: Number(updated.balance), currency: updated.currency, createdAt: updated.createdAt.toISOString() },
+      adjusted: signedAmount,
+      previousBalance: currentBalance,
+      newBalance: Number(updated.balance),
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to adjust wallet balance" });
   }
-  const amountNum = Number(amount);
-  if (isNaN(amountNum) || amountNum === 0) {
-    res.status(400).json({ error: "Amount must be a non-zero number" }); return;
-  }
-
-  const [wallet] = await db.select().from(walletsTable)
-    .where(eq(walletsTable.userId, userId));
-
-  const allWallets = await db.select().from(walletsTable).where(eq(walletsTable.userId, userId));
-  const targetWallet = allWallets.find(w => w.type === walletType);
-  if (!targetWallet) { res.status(404).json({ error: "Wallet not found for this user" }); return; }
-
-  const currentBalance = Number(targetWallet.balance);
-  const newBalance = currentBalance + amountNum;
-  if (newBalance < 0) {
-    res.status(400).json({ error: `Insufficient balance. Current: $${currentBalance.toFixed(2)}` }); return;
-  }
-
-  const [updated] = await db.update(walletsTable)
-    .set({ balance: newBalance.toFixed(2) })
-    .where(eq(walletsTable.id, targetWallet.id))
-    .returning();
-
-  await db.insert(transactionsTable).values({
-    userId,
-    type: amountNum > 0 ? "bonus" : "withdrawal",
-    amount: Math.abs(amountNum).toFixed(2),
-    status: "completed",
-    description: note || `Admin ${amountNum > 0 ? "credit" : "debit"} to ${walletType} wallet`,
-    referenceId: `ADMIN-${Date.now()}`,
-  });
-
-  res.json({
-    success: true,
-    wallet: { id: updated.id, type: updated.type, balance: Number(updated.balance), currency: updated.currency },
-    credited: amountNum,
-    previousBalance: currentBalance,
-    newBalance: Number(updated.balance),
-  });
 });
 
 export default router;

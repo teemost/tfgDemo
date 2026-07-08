@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useListAdminUsers, useUpdateAdminUser, useGetMe } from '@workspace/api-client-react';
+import { useListAdminUsers, useUpdateAdminUser, useGetMe, useAdjustUserWallet } from '@workspace/api-client-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -7,12 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Redirect } from 'wouter';
-import { Search, Shield, UserX, UserCheck } from 'lucide-react';
-import { AdminUserUpdateRole } from '@workspace/api-client-react/src/generated/api.schemas';
+import { Search, Shield, UserX, UserCheck, Wallet, Loader2 } from 'lucide-react';
+import { AdminUserUpdateRole, AdminWalletAdjustInputWalletType, AdminWalletAdjustInputDirection } from '@workspace/api-client-react/src/generated/api.schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { getListAdminUsersQueryKey } from '@workspace/api-client-react/src/generated/api';
+
+const WALLET_TYPES: { value: AdminWalletAdjustInputWalletType; label: string }[] = [
+  { value: 'main', label: 'Main Balance' },
+  { value: 'profit', label: 'Profit' },
+  { value: 'bonus', label: 'Bonus' },
+  { value: 'referral', label: 'Referral' },
+];
 
 export default function AdminUsers() {
   const { data: profile } = useGetMe({ query: { enabled: true } });
@@ -35,10 +44,50 @@ export default function AdminUsers() {
   }, { query: { enabled: isAdmin } });
 
   const updateUser = useUpdateAdminUser();
+  const adjustWallet = useAdjustUserWallet();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [walletDialogUser, setWalletDialogUser] = useState<{ id: number; name: string } | null>(null);
+  const [walletType, setWalletType] = useState<AdminWalletAdjustInputWalletType>('main');
+  const [direction, setDirection] = useState<AdminWalletAdjustInputDirection>('deposit');
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+
   if (!isAdmin && profile) return <Redirect to="/dashboard" />;
+
+  const openWalletDialog = (userId: number, name: string) => {
+    setWalletDialogUser({ id: userId, name });
+    setWalletType('main');
+    setDirection('deposit');
+    setAmount('');
+    setNote('');
+  };
+
+  const handleWalletSubmit = () => {
+    if (!walletDialogUser) return;
+    const amountNum = Number(amount);
+    if (!amountNum || amountNum <= 0) {
+      toast({ variant: 'destructive', title: 'Enter a valid amount greater than zero' });
+      return;
+    }
+    adjustWallet.mutate({
+      id: walletDialogUser.id,
+      data: { walletType, direction, amount: amountNum, note: note || undefined },
+    }, {
+      onSuccess: (result) => {
+        toast({
+          title: `${direction === 'deposit' ? 'Deposited' : 'Withdrew'} ${amountNum.toFixed(2)} ${direction === 'deposit' ? 'to' : 'from'} ${walletDialogUser.name}'s ${walletType} wallet`,
+          description: `New balance: ${result.newBalance.toFixed(2)}`,
+        });
+        queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() });
+        setWalletDialogUser(null);
+      },
+      onError: (err: any) => {
+        toast({ variant: 'destructive', title: 'Wallet adjustment failed', description: err?.message ?? 'Something went wrong' });
+      },
+    });
+  };
 
   const handleToggleStatus = (userId: number, currentStatus: boolean) => {
     updateUser.mutate({
@@ -127,6 +176,15 @@ export default function AdminUsers() {
                       <TableCell className="text-gray-400 text-sm">{new Date(u.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openWalletDialog(u.id, `${u.firstName} ${u.lastName}`)}
+                            className="h-8 border border-white/10 text-gray-300 hover:text-white"
+                          >
+                            <Wallet className="w-4 h-4 mr-1" />
+                            Wallet
+                          </Button>
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -168,6 +226,88 @@ export default function AdminUsers() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!walletDialogUser} onOpenChange={(open) => !open && setWalletDialogUser(null)}>
+        <DialogContent className="bg-[#111111] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="font-playfair text-primary">
+              Manage Wallet — {walletDialogUser?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={direction === 'deposit' ? 'default' : 'outline'}
+                className={direction === 'deposit' ? 'bg-green-600 hover:bg-green-700' : 'border-white/10 text-gray-300'}
+                onClick={() => setDirection('deposit')}
+              >
+                Deposit
+              </Button>
+              <Button
+                type="button"
+                variant={direction === 'withdraw' ? 'default' : 'outline'}
+                className={direction === 'withdraw' ? 'bg-red-600 hover:bg-red-700' : 'border-white/10 text-gray-300'}
+                onClick={() => setDirection('withdraw')}
+              >
+                Withdraw
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Wallet</Label>
+              <Select value={walletType} onValueChange={(v) => setWalletType(v as AdminWalletAdjustInputWalletType)}>
+                <SelectTrigger className="bg-[#0A0A0A] border-white/10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {WALLET_TYPES.map((w) => (
+                    <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Amount (USD)</Label>
+              <Input
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="bg-[#0A0A0A] border-white/10 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Note (optional)</Label>
+              <Input
+                placeholder="Reason for adjustment"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="bg-[#0A0A0A] border-white/10 text-white"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" className="border-white/10 text-gray-300" onClick={() => setWalletDialogUser(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleWalletSubmit}
+              disabled={adjustWallet.isPending}
+              className={direction === 'deposit' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            >
+              {adjustWallet.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              Confirm {direction === 'deposit' ? 'Deposit' : 'Withdrawal'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

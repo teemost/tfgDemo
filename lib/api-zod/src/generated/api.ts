@@ -879,6 +879,40 @@ export const UpdateAdminUserResponse = zod.object({
 
 
 /**
+ * @summary Manually deposit into or withdraw from a user's wallet (admin)
+ */
+export const AdjustUserWalletParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const adjustUserWalletBodyAmountExclusiveMin = 0;
+
+
+
+export const AdjustUserWalletBody = zod.object({
+  "walletType": zod.enum(['main', 'profit', 'bonus', 'referral']),
+  "direction": zod.enum(['deposit', 'withdraw']),
+  "amount": zod.number().gt(adjustUserWalletBodyAmountExclusiveMin),
+  "note": zod.string().optional()
+})
+
+export const AdjustUserWalletResponse = zod.object({
+  "success": zod.boolean(),
+  "wallet": zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.enum(['main', 'profit', 'bonus', 'referral']),
+  "balance": zod.number(),
+  "currency": zod.string(),
+  "createdAt": zod.string()
+}),
+  "adjusted": zod.number(),
+  "previousBalance": zod.number(),
+  "newBalance": zod.number()
+})
+
+
+/**
  * @summary List all deposits (admin)
  */
 export const listAdminDepositsQueryPageDefault = 1;

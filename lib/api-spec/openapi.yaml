@@ -771,6 +771,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminUserDetail"
 
+  /admin/users/{id}/credit:
+    post:
+      operationId: adjustUserWallet
+      tags: [admin]
+      summary: Manually deposit into or withdraw from a user's wallet (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminWalletAdjustInput"
+      responses:
+        "200":
+          description: Wallet adjustment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminWalletAdjustResult"
+
   /admin/deposits:
     get:
       operationId: listAdminDeposits
@@ -1238,6 +1263,37 @@ components:
           type: string
         createdAt:
           type: string
+
+    AdminWalletAdjustInput:
+      type: object
+      required: [walletType, direction, amount]
+      properties:
+        walletType:
+          type: string
+          enum: [main, profit, bonus, referral]
+        direction:
+          type: string
+          enum: [deposit, withdraw]
+        amount:
+          type: number
+          exclusiveMinimum: 0
+        note:
+          type: string
+
+    AdminWalletAdjustResult:
+      type: object
+      required: [success, wallet, adjusted, previousBalance, newBalance]
+      properties:
+        success:
+          type: boolean
+        wallet:
+          $ref: "#/components/schemas/Wallet"
+        adjusted:
+          type: number
+        previousBalance:
+          type: number
+        newBalance:
+          type: number
 
     WalletTransferInput:
       type: object

@@ -44,3 +44,11 @@ When running Node scripts to seed DB, must use full pnpm path: `/home/runner/wor
 The Clerk→Replit Auth migration left `admin/login.tsx` and `admin/register.tsx` importing a nonexistent OIDC-style `login` redirect helper from `use-session.ts`, even though the rest of the app had already switched to email/password auth (`useLogin`/`useRegister` hooks, real forms at `/login` and `/register`). Fixed by pointing the admin CTA buttons to the real `/login` and `/register` pages instead.
 **Why:** partial migrations across a multi-page app can leave stale symbol references that only surface as a Vite/esbuild dep-scan failure at dev-server start, not a type error caught earlier.
 **How to apply:** after any auth-pattern migration, grep the whole app for the old helper names (not just the primary flow pages) before considering it done.
+
+## Wallet Balance Adjustments (admin credit/debit)
+Admin-initiated wallet balance changes (deposit/withdraw/adjust) must run inside a single `db.transaction` with `SELECT ... FOR UPDATE` on the wallet row, and round amounts to 2 decimals *before* the balance-check/write, not after.
+**Why:** a read-check-write split across separate statements lets concurrent requests race past the insufficient-balance check (lost update); unrounded amounts let the validated/returned `adjusted` value drift from what's actually persisted via `toFixed(2)`.
+**How to apply:** any new money-moving endpoint (deposits, withdrawals, transfers, admin adjustments) should follow this pattern: `db.transaction(tx => { select...for("update") -> compute -> update -> insert ledger row })`, with a shared 2-decimal rounding step up front.
+
+## `transactions.reference_id` column type
+`transactionsTable.referenceId` is an `integer` (meant to point at a deposit/withdrawal/investment row id), not a string. Don't pass string tags like `ADMIN-<timestamp>` into it — put such tags in the `description` field instead, or the insert throws a Postgres type error.
