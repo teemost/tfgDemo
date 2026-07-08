@@ -27,6 +27,7 @@ import SupportTicket from '@/pages/support-ticket';
 import Profile from '@/pages/profile';
 
 // Admin Pages
+import AdminLogin from '@/pages/admin/login';
 import AdminDashboard from '@/pages/admin/dashboard';
 import AdminUsers from '@/pages/admin/users';
 import AdminDeposits from '@/pages/admin/deposits';

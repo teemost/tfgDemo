@@ -75,4 +75,53 @@ router.patch("/admin/users/:id", requireAdmin, async (req: AuthRequest, res): Pr
   res.json({ user: fmtUser(user), wallets: wallets.map(w => ({ id: w.id, userId: w.userId, type: w.type, balance: Number(w.balance), currency: w.currency, createdAt: w.createdAt.toISOString() })), totalInvested: 0, totalProfit: 0, totalDeposited: 0, totalWithdrawn: 0 });
 });
 
+router.post("/admin/users/:id/credit", requireAdmin, async (req: AuthRequest, res): Promise<void> => {
+  const userId = Number(req.params.id);
+  if (isNaN(userId)) { res.status(400).json({ error: "Invalid user id" }); return; }
+
+  const { walletType, amount, note } = req.body as { walletType: string; amount: number; note?: string };
+  if (!walletType || !["main", "profit", "bonus", "referral"].includes(walletType)) {
+    res.status(400).json({ error: "Invalid wallet type. Must be: main, profit, bonus, or referral" }); return;
+  }
+  const amountNum = Number(amount);
+  if (isNaN(amountNum) || amountNum === 0) {
+    res.status(400).json({ error: "Amount must be a non-zero number" }); return;
+  }
+
+  const [wallet] = await db.select().from(walletsTable)
+    .where(eq(walletsTable.userId, userId));
+
+  const allWallets = await db.select().from(walletsTable).where(eq(walletsTable.userId, userId));
+  const targetWallet = allWallets.find(w => w.type === walletType);
+  if (!targetWallet) { res.status(404).json({ error: "Wallet not found for this user" }); return; }
+
+  const currentBalance = Number(targetWallet.balance);
+  const newBalance = currentBalance + amountNum;
+  if (newBalance < 0) {
+    res.status(400).json({ error: `Insufficient balance. Current: $${currentBalance.toFixed(2)}` }); return;
+  }
+
+  const [updated] = await db.update(walletsTable)
+    .set({ balance: newBalance.toFixed(2) })
+    .where(eq(walletsTable.id, targetWallet.id))
+    .returning();
+
+  await db.insert(transactionsTable).values({
+    userId,
+    type: amountNum > 0 ? "bonus" : "withdrawal",
+    amount: Math.abs(amountNum).toFixed(2),
+    status: "completed",
+    description: note || `Admin ${amountNum > 0 ? "credit" : "debit"} to ${walletType} wallet`,
+    referenceId: `ADMIN-${Date.now()}`,
+  });
+
+  res.json({
+    success: true,
+    wallet: { id: updated.id, type: updated.type, balance: Number(updated.balance), currency: updated.currency },
+    credited: amountNum,
+    previousBalance: currentBalance,
+    newBalance: Number(updated.balance),
+  });
+});
+
 export default router;
