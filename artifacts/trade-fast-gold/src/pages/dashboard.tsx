@@ -3,7 +3,7 @@ import { useGetDashboardSummary, useGetMe } from '@workspace/api-client-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@clerk/react';
-import { Wallet, TrendingUp, ArrowDownToLine, ArrowUpFromLine, Activity } from 'lucide-react';
+import { Wallet, TrendingUp, ArrowDownToLine, ArrowUpFromLine, Activity, History } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // Dummy data for chart since we don't have historical chart endpoint
