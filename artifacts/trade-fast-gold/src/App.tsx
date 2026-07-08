@@ -9,6 +9,8 @@ import { useSession } from '@/hooks/use-session';
 // Pages
 import NotFound from '@/pages/not-found';
 import Home from '@/pages/home';
+import Login from '@/pages/login';
+import Register from '@/pages/register';
 import Dashboard from '@/pages/dashboard';
 import Plans from '@/pages/plans';
 import Deposit from '@/pages/deposit';
@@ -26,6 +28,7 @@ import Profile from '@/pages/profile';
 
 // Admin Pages
 import AdminLogin from '@/pages/admin/login';
+import AdminRegister from '@/pages/admin/register';
 import AdminDashboard from '@/pages/admin/dashboard';
 import AdminUsers from '@/pages/admin/users';
 import AdminDeposits from '@/pages/admin/deposits';
@@ -72,7 +75,10 @@ function AppRoutes() {
       <TooltipProvider>
         <Switch>
           <Route path="/" component={HomeRedirect} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
           <Route path="/admin/login" component={AdminLogin} />
+          <Route path="/admin/register" component={AdminRegister} />
 
           <Route path="/dashboard"><ProtectedRoute component={Dashboard} /></Route>
           <Route path="/plans"><ProtectedRoute component={Plans} /></Route>

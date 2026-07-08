@@ -5,7 +5,7 @@ import { useSession, login } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 
-export default function AdminLogin() {
+export default function AdminRegister() {
   const { isAuthenticated, isLoading: isSessionLoading } = useSession();
   const { data: profile, isLoading } = useGetMe({ query: { enabled: isAuthenticated } });
 
@@ -20,7 +20,7 @@ export default function AdminLogin() {
             <ShieldAlert className="w-8 h-8 text-red-500" />
           </div>
           <h2 className="text-2xl font-playfair font-bold text-white">Access Denied</h2>
-          <p className="text-gray-400">This portal is restricted to administrators only.</p>
+          <p className="text-gray-400">Your account has been created, but admin access must be granted by an existing administrator.</p>
           <a href="/dashboard" className="inline-block mt-4 px-6 py-2 bg-gold-gradient text-black font-semibold rounded-lg hover:opacity-90 transition-opacity">
             Go to Dashboard
           </a>
@@ -39,21 +39,23 @@ export default function AdminLogin() {
         <div className="w-16 h-16 rounded-full bg-gold-gradient flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(212,175,55,0.3)]">
           <ShieldAlert className="w-8 h-8 text-black" />
         </div>
-        <h1 className="text-3xl font-playfair font-bold text-white">Admin Portal</h1>
-        <p className="text-gray-400 mt-2 text-sm mb-8">TFG — Restricted Access</p>
+        <h1 className="text-3xl font-playfair font-bold text-white">Admin Registration</h1>
+        <p className="text-gray-400 mt-2 text-sm mb-8">
+          Create an account, then ask an existing administrator to grant you admin access.
+        </p>
 
         <Button
           size="lg"
           className="w-full h-14 bg-gold-gradient text-black font-semibold text-lg hover:opacity-90"
           onClick={login}
         >
-          Sign In
+          Create Account
         </Button>
 
         <p className="text-sm text-gray-500 mt-6">
-          Need an account?{' '}
-          <Link href="/admin/register" className="text-primary hover:underline font-medium">
-            Register
+          Already an admin?{' '}
+          <Link href="/admin/login" className="text-primary hover:underline font-medium">
+            Sign in
           </Link>
         </p>
       </div>

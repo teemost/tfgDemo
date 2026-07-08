@@ -1,8 +1,8 @@
 import React from 'react';
+import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Shield, TrendingUp, Globe2, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { login } from '@/hooks/use-session';
 
 export default function Home() {
   return (
@@ -22,8 +22,12 @@ export default function Home() {
             <a href="#about" className="hover:text-primary transition-colors">About</a>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/5" onClick={login}>Sign In</Button>
-            <Button className="bg-gold-gradient text-black font-semibold hover:opacity-90 shadow-[0_0_15px_rgba(212,175,55,0.2)]" onClick={login}>Get Started</Button>
+            <Link href="/login">
+              <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/5">Sign In</Button>
+            </Link>
+            <Link href="/register">
+              <Button className="bg-gold-gradient text-black font-semibold hover:opacity-90 shadow-[0_0_15px_rgba(212,175,55,0.2)]">Get Started</Button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -52,12 +56,16 @@ export default function Home() {
               Elite institutional-grade investment platform for high-net-worth individuals. Secure your legacy with our AI-driven gold, crypto, and forex portfolios.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="w-full sm:w-auto h-14 px-8 bg-gold-gradient text-black font-semibold text-lg hover:scale-105 transition-transform shadow-[0_0_20px_rgba(212,175,55,0.3)]" onClick={login}>
-                Start Investing Now <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-8 border-primary/30 text-white hover:bg-primary/10" onClick={login}>
-                Client Portal
-              </Button>
+              <Link href="/register">
+                <Button size="lg" className="w-full sm:w-auto h-14 px-8 bg-gold-gradient text-black font-semibold text-lg hover:scale-105 transition-transform shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                  Start Investing Now <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-8 border-primary/30 text-white hover:bg-primary/10">
+                  Client Portal
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -127,9 +135,11 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
           <h2 className="text-4xl md:text-6xl font-playfair font-bold mb-8">Ready to Elevate Your Portfolio?</h2>
           <p className="text-xl text-gray-300 mb-10">Join thousands of elite investors who trust Trade Fast Gold with their wealth.</p>
-          <Button size="lg" className="h-16 px-10 text-lg bg-gold-gradient text-black font-bold hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.4)]" onClick={login}>
-            Create Your Account Now
-          </Button>
+          <Link href="/register">
+            <Button size="lg" className="h-16 px-10 text-lg bg-gold-gradient text-black font-bold hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+              Create Your Account Now
+            </Button>
+          </Link>
         </div>
       </section>
 
