@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Redirect } from 'wouter';
 import { useGetMe } from '@workspace/api-client-react';
-import { useSession, login } from '@/hooks/use-session';
+import { useSession } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 
@@ -44,13 +44,14 @@ export default function AdminRegister() {
           Create an account, then ask an existing administrator to grant you admin access.
         </p>
 
-        <Button
-          size="lg"
-          className="w-full h-14 bg-gold-gradient text-black font-semibold text-lg hover:opacity-90"
-          onClick={login}
-        >
-          Create Account
-        </Button>
+        <Link href="/register">
+          <Button
+            size="lg"
+            className="w-full h-14 bg-gold-gradient text-black font-semibold text-lg hover:opacity-90"
+          >
+            Create Account
+          </Button>
+        </Link>
 
         <p className="text-sm text-gray-500 mt-6">
           Already an admin?{' '}

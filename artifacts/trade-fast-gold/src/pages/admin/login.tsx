@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Redirect } from 'wouter';
 import { useGetMe } from '@workspace/api-client-react';
-import { useSession, login } from '@/hooks/use-session';
+import { useSession } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 
@@ -42,13 +42,14 @@ export default function AdminLogin() {
         <h1 className="text-3xl font-playfair font-bold text-white">Admin Portal</h1>
         <p className="text-gray-400 mt-2 text-sm mb-8">TFG — Restricted Access</p>
 
-        <Button
-          size="lg"
-          className="w-full h-14 bg-gold-gradient text-black font-semibold text-lg hover:opacity-90"
-          onClick={login}
-        >
-          Sign In
-        </Button>
+        <Link href="/login">
+          <Button
+            size="lg"
+            className="w-full h-14 bg-gold-gradient text-black font-semibold text-lg hover:opacity-90"
+          >
+            Sign In
+          </Button>
+        </Link>
 
         <p className="text-sm text-gray-500 mt-6">
           Need an account?{' '}

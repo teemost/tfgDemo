@@ -39,3 +39,8 @@ The `artifacts/trade-fast-gold/` directory exists with full code but has no `art
 
 ## pg Seeding Path
 When running Node scripts to seed DB, must use full pnpm path: `/home/runner/workspace/node_modules/.pnpm/pg@8.22.0/node_modules/pg`
+
+## Auth Migration Leftovers
+The Clerk→Replit Auth migration left `admin/login.tsx` and `admin/register.tsx` importing a nonexistent OIDC-style `login` redirect helper from `use-session.ts`, even though the rest of the app had already switched to email/password auth (`useLogin`/`useRegister` hooks, real forms at `/login` and `/register`). Fixed by pointing the admin CTA buttons to the real `/login` and `/register` pages instead.
+**Why:** partial migrations across a multi-page app can leave stale symbol references that only surface as a Vite/esbuild dep-scan failure at dev-server start, not a type error caught earlier.
+**How to apply:** after any auth-pattern migration, grep the whole app for the old helper names (not just the primary flow pages) before considering it done.
