@@ -3,20 +3,48 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: TRADE FAST GOLD Investment Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User profile operations
+  - name: plans
+    description: Investment plan operations
+  - name: investments
+    description: Investment operations
+  - name: wallets
+    description: Wallet operations
+  - name: deposits
+    description: Deposit operations
+  - name: withdrawals
+    description: Withdrawal operations
+  - name: transactions
+    description: Transaction history
+  - name: kyc
+    description: KYC verification
+  - name: referrals
+    description: Referral program
+  - name: notifications
+    description: Notifications
+  - name: market
+    description: Live market data
+  - name: support
+    description: Support tickets
+  - name: admin
+    description: Admin operations
+  - name: dashboard
+    description: Dashboard summary
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +52,914 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── USER PROFILE ─────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users/me/ensure:
+    post:
+      operationId: ensureUser
+      tags: [users]
+      summary: Ensure user record exists (called after auth)
+      responses:
+        "200":
+          description: User record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  # ─── DASHBOARD ────────────────────────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  # ─── INVESTMENT PLANS ─────────────────────────────────────────────────────
+  /plans:
+    get:
+      operationId: listPlans
+      tags: [plans]
+      summary: List all active investment plans
+      responses:
+        "200":
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+    post:
+      operationId: createPlan
+      tags: [plans]
+      summary: Create investment plan (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanInput"
+      responses:
+        "201":
+          description: Created plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+
+  /plans/{id}:
+    get:
+      operationId: getPlan
+      tags: [plans]
+      summary: Get investment plan by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+    patch:
+      operationId: updatePlan
+      tags: [plans]
+      summary: Update investment plan (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanUpdate"
+      responses:
+        "200":
+          description: Updated plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+    delete:
+      operationId: deletePlan
+      tags: [plans]
+      summary: Delete investment plan (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── INVESTMENTS ──────────────────────────────────────────────────────────
+  /investments:
+    get:
+      operationId: listInvestments
+      tags: [investments]
+      summary: List user investments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, cancelled]
+      responses:
+        "200":
+          description: List of investments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Investment"
+    post:
+      operationId: createInvestment
+      tags: [investments]
+      summary: Create a new investment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvestmentInput"
+      responses:
+        "201":
+          description: Created investment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Investment"
+
+  /investments/{id}:
+    get:
+      operationId: getInvestment
+      tags: [investments]
+      summary: Get investment by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Investment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Investment"
+
+  # ─── WALLETS ──────────────────────────────────────────────────────────────
+  /wallets:
+    get:
+      operationId: listWallets
+      tags: [wallets]
+      summary: Get user wallets
+      responses:
+        "200":
+          description: User wallets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Wallet"
+
+  /wallets/transfer:
+    post:
+      operationId: walletTransfer
+      tags: [wallets]
+      summary: Transfer between wallets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletTransferInput"
+      responses:
+        "200":
+          description: Transfer result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferResult"
+
+  # ─── DEPOSITS ─────────────────────────────────────────────────────────────
+  /deposits:
+    get:
+      operationId: listDeposits
+      tags: [deposits]
+      summary: List user deposits
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, rejected]
+      responses:
+        "200":
+          description: List of deposits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deposit"
+    post:
+      operationId: createDeposit
+      tags: [deposits]
+      summary: Create deposit request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepositInput"
+      responses:
+        "201":
+          description: Created deposit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deposit"
+
+  /deposits/{id}:
+    get:
+      operationId: getDeposit
+      tags: [deposits]
+      summary: Get deposit by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deposit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deposit"
+
+  # ─── WITHDRAWALS ──────────────────────────────────────────────────────────
+  /withdrawals:
+    get:
+      operationId: listWithdrawals
+      tags: [withdrawals]
+      summary: List user withdrawals
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, declined]
+      responses:
+        "200":
+          description: List of withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Withdrawal"
+    post:
+      operationId: createWithdrawal
+      tags: [withdrawals]
+      summary: Request withdrawal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalInput"
+      responses:
+        "201":
+          description: Created withdrawal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  /withdrawals/{id}:
+    get:
+      operationId: getWithdrawal
+      tags: [withdrawals]
+      summary: Get withdrawal by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Withdrawal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  # ─── TRANSACTIONS ─────────────────────────────────────────────────────────
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List user transactions
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [deposit, withdrawal, investment, profit, referral, transfer, bonus]
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Paginated transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionPage"
+
+  # ─── KYC ──────────────────────────────────────────────────────────────────
+  /kyc:
+    get:
+      operationId: getKyc
+      tags: [kyc]
+      summary: Get KYC status for current user
+      responses:
+        "200":
+          description: KYC record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycRecord"
+    post:
+      operationId: submitKyc
+      tags: [kyc]
+      summary: Submit KYC documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KycInput"
+      responses:
+        "201":
+          description: KYC submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycRecord"
+
+  # ─── REFERRALS ────────────────────────────────────────────────────────────
+  /referrals/stats:
+    get:
+      operationId: getReferralStats
+      tags: [referrals]
+      summary: Get referral statistics
+      responses:
+        "200":
+          description: Referral stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralStats"
+
+  /referrals:
+    get:
+      operationId: listReferrals
+      tags: [referrals]
+      summary: List referred users
+      responses:
+        "200":
+          description: List of referrals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferralEntry"
+
+  # ─── NOTIFICATIONS ────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List user notifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Updated count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CountResult"
+
+  # ─── MARKET DATA ──────────────────────────────────────────────────────────
+  /market/tickers:
+    get:
+      operationId: getMarketTickers
+      tags: [market]
+      summary: Get live market tickers (gold, crypto, forex)
+      responses:
+        "200":
+          description: Market tickers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketTicker"
+
+  # ─── SUPPORT TICKETS ──────────────────────────────────────────────────────
+  /support/tickets:
+    get:
+      operationId: listTickets
+      tags: [support]
+      summary: List support tickets
+      responses:
+        "200":
+          description: List of tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SupportTicket"
+    post:
+      operationId: createTicket
+      tags: [support]
+      summary: Create support ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketInput"
+      responses:
+        "201":
+          description: Created ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportTicket"
+
+  /support/tickets/{id}:
+    get:
+      operationId: getTicket
+      tags: [support]
+      summary: Get support ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ticket with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportTicketDetail"
+
+  /support/tickets/{id}/reply:
+    post:
+      operationId: replyTicket
+      tags: [support]
+      summary: Reply to support ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketReplyInput"
+      responses:
+        "201":
+          description: Reply sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketMessage"
+
+  # ─── ADMIN ────────────────────────────────────────────────────────────────
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard stats
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin]
+      summary: List all users (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: kycStatus
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserPage"
+
+  /admin/users/{id}:
+    get:
+      operationId: getAdminUser
+      tags: [admin]
+      summary: Get user detail (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDetail"
+    patch:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update user (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDetail"
+
+  /admin/deposits:
+    get:
+      operationId: listAdminDeposits
+      tags: [admin]
+      summary: List all deposits (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Paginated deposits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDepositPage"
+
+  /admin/deposits/{id}/approve:
+    patch:
+      operationId: approveDeposit
+      tags: [admin]
+      summary: Approve deposit (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved deposit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deposit"
+
+  /admin/deposits/{id}/reject:
+    patch:
+      operationId: rejectDeposit
+      tags: [admin]
+      summary: Reject deposit (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectInput"
+      responses:
+        "200":
+          description: Rejected deposit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deposit"
+
+  /admin/withdrawals:
+    get:
+      operationId: listAdminWithdrawals
+      tags: [admin]
+      summary: List all withdrawals (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Paginated withdrawals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminWithdrawalPage"
+
+  /admin/withdrawals/{id}/approve:
+    patch:
+      operationId: approveWithdrawal
+      tags: [admin]
+      summary: Approve withdrawal (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved withdrawal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  /admin/withdrawals/{id}/decline:
+    patch:
+      operationId: declineWithdrawal
+      tags: [admin]
+      summary: Decline withdrawal (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectInput"
+      responses:
+        "200":
+          description: Declined withdrawal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  /admin/kyc:
+    get:
+      operationId: listAdminKyc
+      tags: [admin]
+      summary: List KYC submissions (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: KYC submissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminKycPage"
+
+  /admin/kyc/{id}/approve:
+    patch:
+      operationId: approveKyc
+      tags: [admin]
+      summary: Approve KYC (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved KYC
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycRecord"
+
+  /admin/kyc/{id}/reject:
+    patch:
+      operationId: rejectKyc
+      tags: [admin]
+      summary: Reject KYC (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectInput"
+      responses:
+        "200":
+          description: Rejected KYC
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycRecord"
+
+  /admin/tickets:
+    get:
+      operationId: listAdminTickets
+      tags: [admin]
+      summary: List all support tickets (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Paginated tickets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTicketPage"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +967,721 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    # ─── USER ───────────────────────────────────────────────────────────────
+    UserProfile:
+      type: object
+      required: [id, clerkId, email, firstName, lastName, role, kycStatus, referralCode, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: ["string", "null"]
+        country:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [user, admin]
+        kycStatus:
+          type: string
+          enum: [not_submitted, pending, approved, rejected]
+        referralCode:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        country:
+          type: string
+        avatarUrl:
+          type: string
+
+    # ─── DASHBOARD ──────────────────────────────────────────────────────────
+    DashboardSummary:
+      type: object
+      required: [portfolioValue, availableBalance, activeInvestments, pendingWithdrawals, totalProfit, dailyEarnings, totalDeposited, totalWithdrawn]
+      properties:
+        portfolioValue:
+          type: number
+        availableBalance:
+          type: number
+        activeInvestments:
+          type: integer
+        pendingWithdrawals:
+          type: number
+        totalProfit:
+          type: number
+        dailyEarnings:
+          type: number
+        totalDeposited:
+          type: number
+        totalWithdrawn:
+          type: number
+        recentTransactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+
+    # ─── PLANS ──────────────────────────────────────────────────────────────
+    Plan:
+      type: object
+      required: [id, name, tier, minAmount, maxAmount, roiPercent, durationDays, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        tier:
+          type: string
+          enum: [starter, silver, gold, premium, vip]
+        description:
+          type: ["string", "null"]
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        roiPercent:
+          type: number
+        durationDays:
+          type: integer
+        isActive:
+          type: boolean
+        features:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+
+    PlanInput:
+      type: object
+      required: [name, tier, minAmount, maxAmount, roiPercent, durationDays]
+      properties:
+        name:
+          type: string
+        tier:
+          type: string
+          enum: [starter, silver, gold, premium, vip]
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        roiPercent:
+          type: number
+        durationDays:
+          type: integer
+        features:
+          type: array
+          items:
+            type: string
+
+    PlanUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        roiPercent:
+          type: number
+        durationDays:
+          type: integer
+        isActive:
+          type: boolean
+        features:
+          type: array
+          items:
+            type: string
+
+    # ─── INVESTMENTS ────────────────────────────────────────────────────────
+    Investment:
+      type: object
+      required: [id, userId, planId, planName, amount, roiPercent, durationDays, status, startDate, endDate, profitEarned, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        planId:
+          type: integer
+        planName:
+          type: string
+        amount:
+          type: number
+        roiPercent:
+          type: number
+        durationDays:
+          type: integer
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        startDate:
+          type: string
+        endDate:
+          type: string
+        profitEarned:
+          type: number
+        progressPercent:
+          type: number
+        createdAt:
+          type: string
+
+    InvestmentInput:
+      type: object
+      required: [planId, amount]
+      properties:
+        planId:
+          type: integer
+        amount:
+          type: number
+
+    # ─── WALLETS ────────────────────────────────────────────────────────────
+    Wallet:
+      type: object
+      required: [id, userId, type, balance, currency, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [main, profit, bonus, referral]
+        balance:
+          type: number
+        currency:
+          type: string
+        createdAt:
+          type: string
+
+    WalletTransferInput:
+      type: object
+      required: [fromWalletType, toWalletType, amount]
+      properties:
+        fromWalletType:
+          type: string
+          enum: [main, profit, bonus, referral]
+        toWalletType:
+          type: string
+          enum: [main, profit, bonus, referral]
+        amount:
+          type: number
+
+    TransferResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        fromBalance:
+          type: number
+        toBalance:
+          type: number
+
+    # ─── DEPOSITS ───────────────────────────────────────────────────────────
+    Deposit:
+      type: object
+      required: [id, userId, amount, method, status, reference, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        method:
+          type: string
+          enum: [bank_transfer, card, bitcoin, ethereum, usdt_trc20, usdt_erc20]
+        status:
+          type: string
+          enum: [pending, confirmed, rejected]
+        reference:
+          type: string
+        transactionHash:
+          type: ["string", "null"]
+        proofUrl:
+          type: ["string", "null"]
+        rejectionReason:
+          type: ["string", "null"]
+        confirmedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    DepositInput:
+      type: object
+      required: [amount, method]
+      properties:
+        amount:
+          type: number
+        method:
+          type: string
+          enum: [bank_transfer, card, bitcoin, ethereum, usdt_trc20, usdt_erc20]
+        transactionHash:
+          type: string
+        proofUrl:
+          type: string
+
+    # ─── WITHDRAWALS ────────────────────────────────────────────────────────
+    Withdrawal:
+      type: object
+      required: [id, userId, amount, method, status, walletAddress, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        method:
+          type: string
+          enum: [bank_account, crypto_wallet]
+        status:
+          type: string
+          enum: [pending, approved, declined]
+        walletAddress:
+          type: string
+        bankDetails:
+          type: ["string", "null"]
+        rejectionReason:
+          type: ["string", "null"]
+        processedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    WithdrawalInput:
+      type: object
+      required: [amount, method, walletAddress]
+      properties:
+        amount:
+          type: number
+        method:
+          type: string
+          enum: [bank_account, crypto_wallet]
+        walletAddress:
+          type: string
+        bankDetails:
+          type: string
+
+    # ─── TRANSACTIONS ───────────────────────────────────────────────────────
+    Transaction:
+      type: object
+      required: [id, userId, type, amount, status, description, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [deposit, withdrawal, investment, profit, referral, transfer, bonus]
+        amount:
+          type: number
+        status:
+          type: string
+        description:
+          type: string
+        referenceId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    TransactionPage:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    # ─── KYC ────────────────────────────────────────────────────────────────
+    KycRecord:
+      type: object
+      required: [id, userId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, rejected, resubmit_required]
+        documentType:
+          type: ["string", "null"]
+        documentFrontUrl:
+          type: ["string", "null"]
+        documentBackUrl:
+          type: ["string", "null"]
+        selfieUrl:
+          type: ["string", "null"]
+        proofOfAddressUrl:
+          type: ["string", "null"]
+        rejectionReason:
+          type: ["string", "null"]
+        reviewedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    KycInput:
+      type: object
+      required: [documentType, documentFrontUrl]
+      properties:
+        documentType:
+          type: string
+          enum: [passport, drivers_license, national_id]
+        documentFrontUrl:
+          type: string
+        documentBackUrl:
+          type: string
+        selfieUrl:
+          type: string
+        proofOfAddressUrl:
+          type: string
+
+    # ─── REFERRALS ──────────────────────────────────────────────────────────
+    ReferralStats:
+      type: object
+      required: [referralCode, referralLink, totalReferrals, activeReferrals, totalEarnings, pendingEarnings]
+      properties:
+        referralCode:
+          type: string
+        referralLink:
+          type: string
+        totalReferrals:
+          type: integer
+        activeReferrals:
+          type: integer
+        totalEarnings:
+          type: number
+        pendingEarnings:
+          type: number
+
+    ReferralEntry:
+      type: object
+      required: [id, referredName, referredEmail, status, commission, joinedAt]
+      properties:
+        id:
+          type: integer
+        referredName:
+          type: string
+        referredEmail:
+          type: string
+        status:
+          type: string
+          enum: [registered, active, invested]
+        commission:
+          type: number
+        joinedAt:
+          type: string
+
+    # ─── NOTIFICATIONS ──────────────────────────────────────────────────────
+    Notification:
+      type: object
+      required: [id, userId, type, title, message, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [deposit, withdrawal, investment, profit, referral, kyc, security, system]
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+
+    CountResult:
+      type: object
+      required: [count]
+      properties:
+        count:
+          type: integer
+
+    # ─── MARKET ─────────────────────────────────────────────────────────────
+    MarketTicker:
+      type: object
+      required: [symbol, name, price, change24h, changePercent24h, type]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        change24h:
+          type: number
+        changePercent24h:
+          type: number
+        type:
+          type: string
+          enum: [gold, crypto, forex]
+        iconUrl:
+          type: ["string", "null"]
+
+    # ─── SUPPORT ────────────────────────────────────────────────────────────
+    SupportTicket:
+      type: object
+      required: [id, userId, subject, category, status, priority, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        subject:
+          type: string
+        category:
+          type: string
+          enum: [deposit, withdrawal, investment, account, technical, other]
+        status:
+          type: string
+          enum: [open, in_progress, resolved, closed]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    SupportTicketDetail:
+      type: object
+      required: [id, userId, subject, category, status, priority, messages, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        subject:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/TicketMessage"
+        createdAt:
+          type: string
+
+    TicketMessage:
+      type: object
+      required: [id, ticketId, senderRole, message, createdAt]
+      properties:
+        id:
+          type: integer
+        ticketId:
+          type: integer
+        senderRole:
+          type: string
+          enum: [user, admin]
+        message:
+          type: string
+        createdAt:
+          type: string
+
+    TicketInput:
+      type: object
+      required: [subject, category, message]
+      properties:
+        subject:
+          type: string
+        category:
+          type: string
+          enum: [deposit, withdrawal, investment, account, technical, other]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        message:
+          type: string
+
+    TicketReplyInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    RejectInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    # ─── ADMIN ──────────────────────────────────────────────────────────────
+    AdminStats:
+      type: object
+      required: [totalUsers, activeUsers, totalDeposits, totalWithdrawals, totalInvestments, totalProfit, pendingDeposits, pendingWithdrawals, pendingKyc, openTickets]
+      properties:
+        totalUsers:
+          type: integer
+        activeUsers:
+          type: integer
+        totalDeposits:
+          type: number
+        totalWithdrawals:
+          type: number
+        totalInvestments:
+          type: number
+        totalProfit:
+          type: number
+        pendingDeposits:
+          type: integer
+        pendingWithdrawals:
+          type: integer
+        pendingKyc:
+          type: integer
+        openTickets:
+          type: integer
+
+    AdminUserPage:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProfile"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminUserDetail:
+      type: object
+      required: [user, wallets, totalInvested, totalProfit, totalDeposited, totalWithdrawn]
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfile"
+        wallets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Wallet"
+        totalInvested:
+          type: number
+        totalProfit:
+          type: number
+        totalDeposited:
+          type: number
+        totalWithdrawn:
+          type: number
+
+    AdminUserUpdate:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+        role:
+          type: string
+          enum: [user, admin]
+        kycStatus:
+          type: string
+          enum: [not_submitted, pending, approved, rejected]
+
+    AdminDepositPage:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Deposit"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminWithdrawalPage:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Withdrawal"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminKycPage:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/KycRecord"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminTicketPage:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupportTicket"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer

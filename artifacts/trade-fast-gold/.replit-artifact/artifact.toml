@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "TRADE FAST GOLD"
+version = "1.0.0"
+id = "artifacts/trade-fast-gold"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22003
+
+[services.development]
+run = "pnpm --filter @workspace/trade-fast-gold run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/trade-fast-gold", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/trade-fast-gold/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22003"
+BASE_PATH = "/"
